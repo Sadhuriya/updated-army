@@ -14,27 +14,24 @@ var enemyBulletGroup
 var edges;
 
 var inviGroup;
-var cols;
-var rows;
-var oldColValue = -1;
+
 var visiblity = 255
 
 var bgImg;
-var x1 = 0;
-var x2;
 
-//var scrollSpeed = 2;
+var enemyExists = "false"
+
 
 function preload() {
-  bgImg = loadImage("sprites/winter_1.jpg") 
+  //bgImg = loadImage("sprites/winter_1.jpg") 
   soldierRImage = loadImage("sprites/SOLDIER_Right.png")
-  enemyImage = loadImage("sprites/SOLDIER_left.png")
+  enemyImage = loadImage("sprites/SOLDIER_Left.png")
   bulletImage = loadImage ("sprites/bullet.png")
   bulletLImage = loadImage ("sprites/BulletLeft.png")
 }
 
 function setup(){
-    var canvas = createCanvas(1600,700);
+    var canvas = createCanvas(1200,600);
 
     x2 = width;
 
@@ -48,14 +45,16 @@ function setup(){
 
     edge = createSprite(0,500,20,500)
 
-    soldier = createSprite(100,550,30,30)
+    soldier = createSprite(250,500,30,30)
     soldier.addImage("sr",soldierRImage)
     soldier.scale = 0.3
     soldier.debug = true;
     soldier.setCollider("rectangle", -100 ,0 ,200,500)
 
-    ground = createSprite(800,690,3600,20)
+    ground = createSprite(800,590,3600,20)
     ground.visible = true
+
+    
 
     inviGroup = new Group();
     enemyGroup = new Group();
@@ -71,18 +70,6 @@ function setup(){
 function draw(){
      background(0);
 
-     image(bgImg, x1, 0, width, height);
-     image(bgImg, x2, 0, width, height);
-     
-    //  x1 -= scrollSpeed;
-    //  x2 -= scrollSpeed;
-     
-     if (x1 < -soldier.x){
-       x1 = width;
-     }
-     if (x2 < -soldier.x){
-       x2 = width;
-     }
  
     drawSprites();
     Engine.update(engine);
@@ -117,19 +104,24 @@ function draw(){
     } else if (soldier.x < 800) {
         ground.x = soldier.x - 500 
     }
-    camera.position.x = soldier.x +600
+    camera.position.x = soldier.x +300
  
 
     if(soldier.x % 1000 === 0 ){
-      platform.push(new Platform (camera.x+800,random(500,600),200,20))
+      platform.push(new Platform (camera.x+800,random(400,500),200,20))
 
       for(var i=0;i<platform.length;i++){
-      invisiblePlatform = createSprite(camera.x+800,platform[i].body.position.y,200,20)
+      invisiblePlatform = createSprite(camera.x+800,platform[i].body.position.y,400,20)
       invisiblePlatform.shapeColor = "brown"
+      
+      
       platform.pop();
       
       inviGroup.add(invisiblePlatform)
-      inviGroup.setLifetimeEach(400);
+      inviGroup.setLifetimeEach(1000);
+      
+
+      
       
       }
        
@@ -145,16 +137,24 @@ function draw(){
       enemyGroup.destroyEach();
       bulletGroup.destroyEach();
       enemyBulletGroup.destroyEach();
+      enemyExists = "false"
     }
 
-    if(enemyGroup.isTouching(soldier)){
-      enemyGroup.setVelocityXEach(-4)
-      enemyBulletGroup.setVelocityXEach(-30)
-      if(enemyBulletGroup.isTouching(soldier)){
-        enemyBulletGroup.destroyEach();
+
+    for(var  i=0; i< enemyGroup.length; i++){
+    if(enemyGroup.get(i).x -soldier.x < 1000 ){
+      enemyGroup.get(i).velocityX= -3
+    
+      if(frameCount% 50===0){
+      createEnemyBullet();
+      } 
+    }else {
+        enemyGroup.setVelocityXEach(0)
       }
-      
-    }
+        
+  
+
+  }
 
     spawnEnemies();
 
@@ -165,20 +165,17 @@ function draw(){
 }
 
 function spawnEnemies(){
-  if(soldier.x% 1300 === 0 ){
-    var enemy = createSprite(camera.x + 800, 600, 20,50);
+  if(soldier.x% 1300 === 0 && enemyExists === "false"){
+    var enemy = createSprite(camera.x + 800, 510, 20,50);
     enemy.scale = 0.3
     enemy.addImage("enemy", enemyImage)
-    enemy.setCollider("rectangle",-1800,0, 4000,enemy.height)
+    enemy.setCollider("rectangle",100,0, 200,enemy.height)
     enemy.debug = true;
+    enemyExists = "true"
 
     enemyGroup.add(enemy)
 
-    enemyBullet = createSprite(enemy.x -60,enemy.y-3,10,10)
-    enemyBullet.addImage("bulletE",bulletLImage)
-    enemyBullet.scale = 0.1;
-
-    enemyBulletGroup.add(enemyBullet)
+    
 
     return enemyGroup;
   }
@@ -197,6 +194,25 @@ function createBullets(){
 
 }
 
+function createEnemyBullet() {
+  for(var  i=0; i< enemyGroup.length; i++){
+  enemyBullet = createSprite(enemyGroup.get(i).x,enemyGroup.get(i).y-3,10,10)
+  enemyBullet.addImage("bulletE",bulletLImage)
+  enemyBullet.scale = 0.1;
+  enemyBullet.velocityX = -30
+
+  enemyBulletGroup.add(enemyBullet)
+  }
+}
+
+function spawnAccessories() {
+  if(soldier.x% 2000 === 0){
+    var rand = Math.round (random(1,2))
+    if(rand === 1){
+    accessories = createSprite()
+    }
+  }
+}
 
 
 
